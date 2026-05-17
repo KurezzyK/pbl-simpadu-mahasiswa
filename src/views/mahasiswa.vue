@@ -1,17 +1,18 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import DeleteModal from '../components/delete.vue'; 
+import { useMahasiswa } from '../services/useMahasiswa.js';
 
-const dataMahasiswa = ref([
-  { nim: 'C030324077', nama: 'Budi Siregar', prodi: 'Teknik Informatika', angkatan: '2024', status: 'Aktif' },
-  { nim: 'C030324080', nama: 'Ani Wijaya', prodi: 'Sistem Informasi', angkatan: '2023', status: 'Tidak Aktif' },
-  { nim: 'C030324091', nama: 'Siti Aminah', prodi: 'Teknik Elektro', angkatan: '2022', status: 'Aktif' },
-]);
+const { dataMahasiswa, isLoading, error, fetchMahasiswa, deleteMahasiswaAPI } = useMahasiswa();
 
 const searchQuery = ref('');
 const filterProdi = ref('');
 const filterAngkatan = ref('');
 const filterStatus = ref('');
+
+onMounted(() => {
+  fetchMahasiswa();
+});
 
 const filteredMahasiswa = computed(() => {
   return dataMahasiswa.value.filter((mhs) => {
@@ -40,10 +41,23 @@ const openDeleteModal = (student) => {
   isDeleteModalOpen.value = true;
 };
 
-const handleDeleteConfirm = () => {
-  dataMahasiswa.value = dataMahasiswa.value.filter(
-    (m) => m.nim !== selectedStudent.value.nim
-  );
+const handleDeleteConfirm = async () => {
+  if (!selectedStudent.value?.id) {
+    alert('ID Mahasiswa tidak ditemukan.');
+    return;
+  }
+
+  const success = await deleteMahasiswaAPI(selectedStudent.value.id);
+
+  if (success) {
+    dataMahasiswa.value = dataMahasiswa.value.filter(
+      (m) => m.id !== selectedStudent.value.id
+    );
+    alert('Data mahasiswa berhasil dihapus dari sistem!');
+  } else {
+    alert('Gagal menghapus data dari server. Silakan periksa koneksi atau token admin.');
+  }
+
   isDeleteModalOpen.value = false;
   selectedStudent.value = null;
 };
@@ -74,9 +88,28 @@ const handleDeleteConfirm = () => {
           
           <select v-model="filterProdi" class="border border-gray-200 rounded px-2 py-1.5 text-[12px] text-gray-500 focus:outline-none bg-white min-w-[110px]">
             <option value="">Semua Prodi</option>
+            <option value="Teknik Sipil">Teknik Sipil</option>
+            <option value="Teknik Bangunan Rawa">Teknik Bangunan Rawa</option>
+            <option value="Teknologi Rekayasa Geomatika dan Survei">Teknik Geodesi</option>
+            <option value="Teknik Pertambangan">Teknik Pertambangan</option>
+            <option value="Teknik Rekayasa Konstruksi Jalan dan Jembatan">Teknik Rekayasa Konstruksi Jalan dan Jembatan</option>
+            <option value="Tata Operasi dan Pemeliharaan Prediktif Alat Berat">Tata Operasi dan Pemeliharaan Prediktif Alat Berat</option>
+            <option value="Teknik Mesin">Teknik Mesin</option>
+            <option value="Teknologi Rekayasa Otomotif">Teknik Rekayasa Otomotif</option>
+            <option value="Alat Berat">Alat Berat</option>
+            <option value="Teknologi Rekayasa Pemeliharaan Alat Berat">Teknologi Rekayasa Pemeliharaan Alat Berat</option>
+            <option value="Teknologi Rekayasa Otomasi">Teknologi Rekayasa Otomasi</option>
+            <option value="Teknik Listrik">Teknik Listrik</option>
+            <option value="Elektronika">Elektronika</option>
             <option value="Teknik Informatika">Teknik Informatika</option>
-            <option value="Sistem Informasi">Sistem Informasi</option>
-            <option value="Teknik Elektro">Teknik Elektro</option>
+            <option value="Sistem Informasi Kota Cerdas">Sistem Informasi Kota Cerdas</option>
+            <option value="Teknik Rekayasa Pembangkit Energi">Teknik Rekayasa Pembangkit Energi</option>
+            <option value="Akuntansi">Akuntansi</option>
+            <option value="Sistem Informasi Akuntansi">Sistem Informasi Akuntansi</option>
+            <option value="Akuntansi Lembaga Keuangan Syariah">Akuntansi Lembaga Keuangan Syariah</option>
+            <option value="Teknik Elektro">Administrasi Bisnis</option>
+            <option value="Manajemen Informatika">Manajemen Informatika</option>
+            <option value="Bisnis Digital">Bisnis Digital</option>
           </select>
 
           <select v-model="filterAngkatan" class="border border-gray-200 rounded px-2 py-1.5 text-[12px] text-gray-500 focus:outline-none bg-white min-w-[100px]">
